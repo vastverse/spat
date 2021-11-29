@@ -1,0 +1,219 @@
+import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import React, { useRef, useState } from "react";
+
+import { Navigate } from "react-router-dom";
+import "./chat.css";
+import { db } from "./firebaseconnector";
+
+function Home() {
+	const container = useRef(null);
+	const [redirect, setRedirect] = useState(false);
+	const [userDetails, setUserDetails] = useState({
+		userName: "",
+		userPassword: "",
+		userEmail: "",
+	});
+	const onChange = (e) => {
+		setUserDetails({
+			...userDetails,
+			[e.target.id]: [e.target.value],
+		});
+	};
+	const onSubmitSignUp = async (e) => {
+		e.preventDefault();
+
+		try {
+			addDoc(collection(db, "users"), userDetails)
+				.then(() => {
+					setRedirect(true);
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+		} catch (e) {
+			console.error("Error adding document: ", e);
+		}
+	};
+	const onSubmitSignIn = async (e) => {
+		e.preventDefault();
+		const q = query(
+			collection(db, "users"),
+			where(
+				"userEmail",
+				"==",
+				userDetails.userEmail,
+				"userPassword",
+				"==",
+				userDetails.userPassword
+			)
+		);
+
+		const querySnapshot = await getDocs(q);
+		querySnapshot.forEach((doc) => {
+			console.log(doc.id, " => ", doc.data());
+			setRedirect(true);
+		});
+	};
+	const signInBtnEvent = () => {
+		const fooBarNode = container.current;
+		fooBarNode.classList.add("sign-up-mode");
+	};
+	const signUpBtnEvent = () => {
+		const fooBarNode = container.current;
+		fooBarNode.classList.remove("sign-up-mode");
+	};
+
+	return (
+		<div class="container" ref={container}>
+			<div class="container__forms">
+				<div class="form">
+					<form action="" class="form__sign-in" onSubmit={onSubmitSignIn}>
+						<h2 class="form__title">Sign In</h2>
+
+						<div class="form__input-field">
+							<i class="fas fa-user"></i>
+							<input
+								id="userEmail"
+								value={userDetails.userEmail}
+								onChange={onChange}
+								type="text"
+								placeholder="Username"
+								required
+							/>
+						</div>
+						<div class="form__input-field">
+							<i class="fas fa-lock"></i>
+							<input
+								type="password"
+								id="userPassword"
+								value={userDetails.userPassword}
+								onChange={onChange}
+								placeholder="Password"
+								required
+							/>
+						</div>
+						<input class="form__submit" type="submit" value="Login" />
+						<p class="form__social-text">Or Sign in with social platforms</p>
+						<div class="form__social-media">
+							<a href="#" class="form__social-icons">
+								<i class="fab fa-facebook-f"></i>
+							</a>
+
+							<a href="#" class="form__social-icons">
+								<i class="fab fa-twitter"></i>
+							</a>
+							<a href="#" class="form__social-icons">
+								<i class="fab fa-google"></i>
+							</a>
+							<a href="#" class="form__social-icons">
+								<i class="fab fa-linkedin-in"></i>
+							</a>
+						</div>
+					</form>
+
+					<form action="" class="form__sign-up" onSubmit={onSubmitSignUp}>
+						<h2 class="form__title">Sign Up</h2>
+						<div class="form__input-field">
+							<i class="fas fa-user"></i>
+							<input
+								type="text"
+								placeholder="Username"
+								id="userName"
+								value={userDetails.userName}
+								onChange={onChange}
+								required
+							/>
+						</div>
+						<div class="form__input-field">
+							<i class="fas fa-envelope"></i>
+							<input
+								type="text"
+								placeholder="Email"
+								id="userEmail"
+								value={userDetails.userEmail}
+								onChange={onChange}
+								required
+							/>
+						</div>
+						<div class="form__input-field">
+							<i class="fas fa-lock"></i>
+							<input
+								type="password"
+								id="userPassword"
+								value={userDetails.userPassword}
+								onChange={onChange}
+								placeholder="Password"
+								required
+							/>
+						</div>
+
+						<input class="form__submit" type="submit" value="Sign Up" />
+
+						<p class="form__social-text">Or Sign up with social platforms</p>
+						<div class="form__social-media">
+							<a href="#" class="form__social-icons">
+								<i class="fab fa-facebook-f"></i>
+							</a>
+							<a href="#" class="form__social-icons">
+								<i class="fab fa-twitter"></i>
+							</a>
+							<a href="#" class="form__social-icons">
+								<i class="fab fa-google"></i>
+							</a>
+							<a href="#" class="form__social-icons">
+								<i class="fab fa-linkedin-in"></i>
+							</a>
+						</div>
+					</form>
+				</div>
+			</div>
+			<div class="container__panels">
+				<div class="panel panel__left">
+					<div class="panel__content">
+						<h3 class="panel__title">New here ?</h3>
+						<p class="panel__paragraph">
+							Spat is a global online chatting app with strangers. You can
+							instantly meet people near you or all over the world
+						</p>
+						<button
+							class="btn btn-transparent"
+							onClick={signInBtnEvent}
+							id="sign-up-btn"
+						>
+							Sign Up
+						</button>
+					</div>
+					<img
+						class="panel__image"
+						src="https://stories.freepiklabs.com/storage/11588/market-launch-amico-2628.png"
+						alt=""
+					/>
+				</div>
+				<div class="panel panel__right">
+					<div class="panel__content">
+						<h3 class="panel__title">One of us ?</h3>
+						<p class="panel__paragraph">
+							Spat is a global online chatting app with strangers. You can
+							instantly meet people near you or all over the world
+						</p>
+						<button
+							class="btn btn-transparent"
+							onClick={signUpBtnEvent}
+							id="sign-in-btn"
+						>
+							Sign In
+						</button>
+					</div>
+					<img
+						class="panel__image"
+						src="https://www.pngkey.com/png/full/444-4444270_ia-press-play-website.png"
+						alt=""
+					/>
+				</div>
+			</div>
+			{redirect && <Navigate to="/chat" />}
+		</div>
+	);
+}
+
+export default Home;
