@@ -4,14 +4,19 @@ import React, { useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 import "./chat.css";
 import { db } from "./firebaseconnector";
-
+import { useAppDispatch } from "./Hooks";
+import { addUserDetails } from "./userreducer";
+import { v4 as uuidv4 } from "uuid";
 function Home() {
 	const container = useRef(null);
+	const dispatch = useAppDispatch();
 	const [redirect, setRedirect] = useState(false);
 	const [userDetails, setUserDetails] = useState({
 		userName: "",
 		userPassword: "",
 		userEmail: "",
+		userId: uuidv4(),
+		imageUrl: "",
 	});
 	const onChange = (e) => {
 		setUserDetails({
@@ -24,8 +29,16 @@ function Home() {
 
 		try {
 			addDoc(collection(db, "users"), userDetails)
-				.then(() => {
+				.then((data) => {
 					setRedirect(true);
+					dispatch(
+						addUserDetails({
+							id: userDetails.userId,
+							email: userDetails.userEmail[0],
+							name: userDetails.userName[0],
+							imageUrl: userDetails.imageUrl,
+						})
+					);
 				})
 				.catch((err) => {
 					console.log(err);
@@ -50,7 +63,17 @@ function Home() {
 
 		const querySnapshot = await getDocs(q);
 		querySnapshot.forEach((doc) => {
-			console.log(doc.id, " => ", doc.data());
+			var data = doc.data();
+
+			dispatch(
+				addUserDetails({
+					id: data.userId,
+					email: data.userEmail[0],
+					name: data.userName[0],
+					imageUrl: data.imageUrl,
+					subscribed: data.subscribed,
+				})
+			);
 			setRedirect(true);
 		});
 	};
