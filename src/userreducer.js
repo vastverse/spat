@@ -6,6 +6,7 @@ const initialState = {
 	name: "",
 	imageUrl: "",
 	subscribed: "",
+	chat: {},
 };
 
 export const userInfo = createSlice({
@@ -19,8 +20,11 @@ export const userInfo = createSlice({
 			state.imageUrl = action.payload.imageUrl;
 			state.subscribed = action.payload.subscribed;
 		},
+		addChatDetails: (state, action) => {
+			state.chat[action.payload.id] = action.payload.chat;
+		},
 	},
 });
-export const { addUserDetails } = userInfo.actions;
+export const { addUserDetails, addChatDetails } = userInfo.actions;
 export const selectUserDetails = (state) => state.userDetails;
 export default userInfo.reducer;

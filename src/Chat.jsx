@@ -1,4 +1,3 @@
-import { current } from "@reduxjs/toolkit";
 import {
 	collection,
 	doc,
@@ -7,16 +6,19 @@ import {
 	updateDoc,
 	where,
 } from "firebase/firestore";
-import React, { useState, useRef, useEffect, useCallback } from "react";
+
+import React, { useState, useRef, useEffect } from "react";
+import { Navigate } from "react-router";
+
 import { db } from "./firebaseconnector";
 import { useAppDispatch, useAppSelector } from "./Hooks";
 
 import { CloseIcon, MenuIcon, SendMessageIcon } from "./icons";
-import { addUserDetails, selectUserDetails } from "./userreducer";
+import { addChatDetails, selectUserDetails } from "./userreducer";
 
 var mqtt = require("mqtt");
 var client = mqtt.connect("ws://test.mosquitto.org:8080");
-var mytopic = "amit";
+
 function Chat() {
 	const input = useRef(null);
 	const userInfo = useAppSelector(selectUserDetails);
@@ -32,26 +34,8 @@ function Chat() {
 		currentChannelName: "",
 	});
 
-	// const handleCallback = useCallback(
-	// 	(topic, message) => {
-	// 		var note;
-	// 		note = message.toString();
-	// 		console.log("note is ", note, topic);
-	// 		setMessages((prevState) => {
-	// 			var data = prevState;
-	// 			if (topic === mytopic) data.push({ message: note, isSelf: true });
-	// 			else data.push({ message: note, isSelf: false });
-	// 			return data;
-	// 		});
-	// 		setMessage(" ");
-	// 		setMessage("");
-	// 	},
-	// 	[setMessages, setMessage]
-	// );
-
 	const addSubscriber = async () => {
 		try {
-			console.log(userInfo);
 			const q = query(
 				collection(db, "users"),
 				where("userId", "==", userInfo.id ? userInfo.id : "amit")
@@ -75,56 +59,87 @@ function Chat() {
 	};
 
 	const sendMessage = async () => {
-		await client.publish(currentState.currentChannelName, message);
+		await client.publish(
+			currentState.currentChannelName,
+			message + userInfo.id
+		);
 		setMessage("");
 	};
 
 	const getConnectionInfo = async () => {
-		var info = userInfo.subscribed;
-		var tosub = [];
-		for (var i = 0; i < info.length; i++) {
-			tosub.push(info[i].suid);
+		if (userInfo.subscribed) {
+			var info = userInfo.subscribed;
+			var tosub = [];
+			for (var i = 0; i < info.length; i++) {
+				tosub.push(info[i].suid);
+			}
+
+			const q = await query(
+				collection(db, "users"),
+				where("userId", "in", tosub)
+			);
+
+			const querySnapshot = await getDocs(q);
+			var sideusers = [];
+			querySnapshot?.forEach(async (docdetails) => {
+				sideusers.push(docdetails.data());
+			});
+
+			setAllUsers(sideusers);
 		}
-
-		const q = await query(
-			collection(db, "users"),
-			where("userId", "in", tosub)
-		);
-
-		const querySnapshot = await getDocs(q);
-		var sideusers = [];
-		querySnapshot?.forEach(async (docdetails) => {
-			sideusers.push(docdetails.data());
-		});
-
-		setAllUsers(sideusers);
 	};
 
 	useEffect(() => {
 		client.on("message", (topic, message) => {
 			var note;
 			note = message.toString();
-			console.log("note is ", note, topic);
+
+			var temp = note.substring(0, note.length - 36);
+
 			setMessages((prevState) => {
 				var data = prevState;
-				if (topic === mytopic) data.push({ message: note, isSelf: true });
-				else data.push({ message: note, isSelf: false });
+				if (note.substring(note.length - 36) === userInfo.id)
+					data.push({ message: temp, isSelf: true });
+				else data.push({ message: temp, isSelf: false });
 				return data;
 			});
+			var data = [];
+			if (userInfo.chat[topic]) {
+				for (var i = 0; i < userInfo.chat[topic].length; i++) {
+					data.push({
+						message: userInfo.chat[topic][i].message,
+						isSelf: userInfo.chat[topic][i].isSelf,
+					});
+				}
+			}
+			if (note.substring(note.length - 36) === userInfo.id) {
+				data.push({ message: temp, isSelf: true });
+			} else {
+				data.push({ message: temp, isSelf: false });
+			}
+
+			dispatch(
+				addChatDetails({
+					id: topic,
+					chat: data,
+				})
+			);
 			setMessage(" ");
 			setMessage("");
 		});
-	}, []);
+	}, [userInfo, dispatch]);
 
 	useEffect(() => {
 		if (!isSubscribed) {
 			setIsSubscribed(true);
 			var info = userInfo.subscribed;
 			var tosub = [];
-			for (var i = 0; i < info.length; i++) {
-				tosub.push(info[i].scid);
+			if (info) {
+				for (var i = 0; i < info.length; i++) {
+					tosub.push(info[i].scid);
+				}
+				client.subscribe(tosub);
 			}
-			client.subscribe(tosub);
 		}
 	}, [setIsSubscribed, isSubscribed, userInfo]);
 
@@ -140,6 +155,23 @@ function Chat() {
 			console.error("Error updating document: ", error);
 		}
 	});
+
+	useEffect(() => {
+		if (userInfo.chat[currentState.currentChannelName]) {
+			var temp = [];
+			for (
+				var i = 0;
+				i < userInfo.chat[currentState.currentChannelName].length;
+				i++
+			) {
+				temp.push({
+					message: userInfo.chat[currentState.currentChannelName][i].message,
+					isSelf: userInfo.chat[currentState.currentChannelName][i].isSelf,
+				});
+			}
+			setMessages(temp);
+		} else setMessages([]);
+	}, [currentState.currentChannelName, userInfo.chat]);
 
 	const [isMenuClosed, setIsMenuClosed] = useState(true);
 	return (
@@ -159,7 +191,6 @@ function Chat() {
 							<div
 								key={index}
 								onClick={() => {
-									console.log(allUsers);
 									if (element.userId < userInfo.id) {
 										setCurrentState({
 											...currentState,
@@ -167,7 +198,6 @@ function Chat() {
 											profileUrl: element.imageUrl,
 											currentChannelName: element.userId + userInfo.id,
 										});
-										console.log(element.userId + userInfo.id);
 									} else {
 										setCurrentState({
 											...currentState,
@@ -175,7 +205,6 @@ function Chat() {
 											profileUrl: element.imageUrl,
 											currentChannelName: userInfo.id + element.userId,
 										});
-										console.log(userInfo.id + element.userId);
 									}
 								}}
 								className="main-left-users-element"
@@ -219,21 +248,24 @@ function Chat() {
 							</div>
 						</div>
 						<div className="main-right-chat" ref={input}>
-							{messages.map(function (message, index) {
-								// console.log(message);
-								return (
-									<div
-										className={
-											message.isSelf
-												? "main-right-chat-self"
-												: "main-right-chat-other"
-										}
-										key={index}
-									>
-										{message.message}
-									</div>
-								);
-							})}
+							{messages ? (
+								messages.map(function (message, index) {
+									return (
+										<div
+											className={
+												message.isSelf
+													? "main-right-chat-self"
+													: "main-right-chat-other"
+											}
+											key={index}
+										>
+											{message.message}
+										</div>
+									);
+								})
+							) : (
+								<div>no messages</div>
+							)}
 						</div>
 						<div className="main-right-input">
 							<div className="main-right-input-avtar">
@@ -263,10 +295,9 @@ function Chat() {
 					<></>
 				)}
 			</div>
+			{!userInfo.id && <Navigate to="/" />}
 		</div>
 	);
 }
 
 export default Chat;
-
-// 0x43ae9b42829ecc9dd601d9a47db72cee690ce55c
