@@ -632,3 +632,70 @@ form.form__sign-up {
 		}
 	}
 }
+
+.AddPartner {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-color: rgb(207, 207, 167);
+	width: 30rem;
+	height: 30rem;
+	border-radius: 5px;
+	padding: 1rem;
+	padding-top: 0.3rem;
+
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	&-element {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.5rem 1rem;
+
+		background-color: rgb(207, 207, 167);
+		&-avtar {
+			&-img {
+				width: 50px;
+				height: 50px;
+				border-radius: 30px;
+				border: 1px solid rgb(77, 73, 73);
+				background-color: rgb(97, 97, 97);
+			}
+		}
+		&-details {
+			display: flex;
+			flex-direction: column;
+			gap: 0.3rem;
+
+			&-name {
+				font-size: 1.1rem;
+			}
+
+			&-text {
+				font-size: 0.8rem;
+			}
+		}
+		&-action {
+			cursor: pointer;
+			display: flex;
+			justify-content: center;
+			&:hover {
+				background-color: #fff;
+				border-radius: 5px;
+			}
+			&-icon {
+				height: 100%;
+				width: 30px;
+			}
+		}
+	}
+	&-cross {
+		cursor: pointer;
+		font-size: 2rem;
+		transform: rotateZ(45deg);
+	}
+}

@@ -9,6 +9,7 @@ import {
 
 import React, { useState, useRef, useEffect } from "react";
 import { Navigate } from "react-router";
+import AddPartner from "./AddPartner";
 
 import { db } from "./firebaseconnector";
 import { useAppDispatch, useAppSelector } from "./Hooks";
@@ -22,7 +23,7 @@ var client = mqtt.connect("ws://test.mosquitto.org:8080");
 function Chat() {
 	const input = useRef(null);
 	const userInfo = useAppSelector(selectUserDetails);
-
+	const [partnerPopup, setPartnerPopup] = useState(true);
 	const dispatch = useAppDispatch();
 	const [message, setMessage] = useState("");
 	const [messages, setMessages] = useState([]);
@@ -130,7 +131,7 @@ function Chat() {
 	}, [userInfo, dispatch]);
 
 	useEffect(() => {
-		if (!isSubscribed) {
+		if (!isSubscribed && userInfo.subscribed) {
 			setIsSubscribed(true);
 			var info = userInfo.subscribed;
 			var tosub = [];
@@ -295,6 +296,21 @@ function Chat() {
 					<></>
 				)}
 			</div>
+			{partnerPopup ? (
+				<div className="AddPartner">
+					<div
+						onClick={() => {
+							setPartnerPopup(false);
+						}}
+						className="AddPartner-cross"
+					>
+						+
+					</div>
+					<AddPartner />
+				</div>
+			) : (
+				<></>
+			)}
 			{!userInfo.id && <Navigate to="/" />}
 		</div>
 	);

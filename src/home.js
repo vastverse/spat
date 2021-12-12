@@ -26,7 +26,6 @@ function Home() {
 	};
 	const onSubmitSignUp = async (e) => {
 		e.preventDefault();
-
 		try {
 			addDoc(collection(db, "users"), userDetails)
 				.then((data) => {
