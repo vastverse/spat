@@ -51,7 +51,7 @@ function Chat() {
 						console.log("Document successfully updated!");
 					})
 					.catch((error) => {
-						console.error("Error updating document: ", error);
+						console.error("Error updating document error: ", error);
 					});
 			});
 		} catch (error) {
