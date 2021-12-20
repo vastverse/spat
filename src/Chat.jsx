@@ -18,8 +18,13 @@ import { CloseIcon, MenuIcon, SendMessageIcon } from "./icons";
 import { addChatDetails, selectUserDetails } from "./userreducer";
 
 var mqtt = require("mqtt");
-var client = mqtt.connect("ws://test.mosquitto.org:8080");
+var client = mqtt.connect("wss://test.mosquitto.org:8080");
 
+if (client.connected) {
+	console.log("connected");
+} else {
+	console.log("sorry not able to connect");
+}
 function Chat() {
 	const input = useRef(null);
 	const userInfo = useAppSelector(selectUserDetails);
@@ -35,31 +40,8 @@ function Chat() {
 		currentChannelName: "",
 	});
 
-	const addSubscriber = async () => {
-		try {
-			const q = query(
-				collection(db, "users"),
-				where("userId", "==", userInfo.id ? userInfo.id : "amit")
-			);
-			const querySnapshot = await getDocs(q);
-			querySnapshot.forEach(async (docdetails) => {
-				const userRef = await doc(db, "users", docdetails.id);
-				updateDoc(userRef, {
-					subscribed: ["amit", "amit2"],
-				})
-					.then(() => {
-						console.log("Document successfully updated!");
-					})
-					.catch((error) => {
-						console.error("Error updating document error: ", error);
-					});
-			});
-		} catch (error) {
-			console.error("Error updating document: ", error);
-		}
-	};
-
 	const sendMessage = async () => {
+		console.log(currentState.currentChannelName);
 		await client.publish(
 			currentState.currentChannelName,
 			message + userInfo.id
@@ -71,10 +53,10 @@ function Chat() {
 		if (userInfo.subscribed) {
 			var info = userInfo.subscribed;
 			var tosub = [];
+
 			for (var i = 0; i < info.length; i++) {
 				tosub.push(info[i].suid);
 			}
-
 			const q = await query(
 				collection(db, "users"),
 				where("userId", "in", tosub)
@@ -83,7 +65,14 @@ function Chat() {
 			const querySnapshot = await getDocs(q);
 			var sideusers = [];
 			querySnapshot?.forEach(async (docdetails) => {
-				sideusers.push(docdetails.data());
+				var data = docdetails.data();
+				for (var i = 0; i < info.length; i++) {
+					if (info[i].suid === data.userId) {
+						data.scid = info[i].scid;
+						break;
+					}
+				}
+				sideusers.push(data);
 			});
 
 			setAllUsers(sideusers);
@@ -155,7 +144,7 @@ function Chat() {
 		} catch (error) {
 			console.error("Error updating document: ", error);
 		}
-	});
+	}, []);
 
 	useEffect(() => {
 		if (userInfo.chat[currentState.currentChannelName]) {
@@ -197,14 +186,14 @@ function Chat() {
 											...currentState,
 											name: element.userName,
 											profileUrl: element.imageUrl,
-											currentChannelName: element.userId + userInfo.id,
+											currentChannelName: element.scid,
 										});
 									} else {
 										setCurrentState({
 											...currentState,
 											name: element.userName,
 											profileUrl: element.imageUrl,
-											currentChannelName: userInfo.id + element.userId,
+											currentChannelName: element.scid,
 										});
 									}
 								}}
@@ -271,7 +260,6 @@ function Chat() {
 						<div className="main-right-input">
 							<div className="main-right-input-avtar">
 								<img
-									onClick={addSubscriber}
 									className="main-right-input-avtar-img"
 									src={userInfo.imageUrl}
 									alt=""
