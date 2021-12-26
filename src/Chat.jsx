@@ -35,35 +35,12 @@ function Chat() {
 		currentChannelName: "",
 	});
 
-	const addSubscriber = async () => {
-		try {
-			const q = query(
-				collection(db, "users"),
-				where("userId", "==", userInfo.id ? userInfo.id : "amit")
-			);
-			const querySnapshot = await getDocs(q);
-			querySnapshot.forEach(async (docdetails) => {
-				const userRef = await doc(db, "users", docdetails.id);
-				updateDoc(userRef, {
-					subscribed: ["amit", "amit2"],
-				})
-					.then(() => {
-						console.log("Document successfully updated!");
-					})
-					.catch((error) => {
-						console.error("Error updating document: ", error);
-					});
-			});
-		} catch (error) {
-			console.error("Error updating document: ", error);
-		}
-	};
-
 	const sendMessage = async () => {
 		await client.publish(
 			currentState.currentChannelName,
 			message + userInfo.id
 		);
+		console.log("senging message: " + message, currentState.currentChannelName);
 		setMessage("");
 	};
 
@@ -139,8 +116,9 @@ function Chat() {
 				for (var i = 0; i < info.length; i++) {
 					tosub.push(info[i].scid);
 				}
-				client.subscribe(tosub);
 			}
+			client.subscribe(tosub);
+			console.log(client);
 		}
 	}, [setIsSubscribed, isSubscribed, userInfo]);
 
@@ -192,20 +170,15 @@ function Chat() {
 							<div
 								key={index}
 								onClick={() => {
-									if (element.userId < userInfo.id) {
-										setCurrentState({
-											...currentState,
-											name: element.userName,
-											profileUrl: element.imageUrl,
-											currentChannelName: element.userId + userInfo.id,
-										});
-									} else {
-										setCurrentState({
-											...currentState,
-											name: element.userName,
-											profileUrl: element.imageUrl,
-											currentChannelName: userInfo.id + element.userId,
-										});
+									for (var i = 0; i < userInfo.subscribed.length; i++) {
+										if (userInfo.subscribed[i].suid === element.userId) {
+											setCurrentState({
+												...currentState,
+												name: element.userName,
+												profileUrl: element.imageUrl,
+												currentChannelName: userInfo.subscribed[i].scid,
+											});
+										}
 									}
 								}}
 								className="main-left-users-element"
@@ -271,7 +244,6 @@ function Chat() {
 						<div className="main-right-input">
 							<div className="main-right-input-avtar">
 								<img
-									onClick={addSubscriber}
 									className="main-right-input-avtar-img"
 									src={userInfo.imageUrl}
 									alt=""
