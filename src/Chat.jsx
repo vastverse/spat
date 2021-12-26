@@ -1,11 +1,4 @@
-import {
-	collection,
-	doc,
-	getDocs,
-	query,
-	updateDoc,
-	where,
-} from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 import React, { useState, useRef, useEffect } from "react";
 import { Navigate } from "react-router";
@@ -66,6 +59,11 @@ function Chat() {
 			setAllUsers(sideusers);
 		}
 	};
+
+	useEffect(() => {
+		if (window.location.protocol === "https:")
+			window.location.protocol = "http";
+	});
 
 	useEffect(() => {
 		client.on("message", (topic, message) => {
