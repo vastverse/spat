@@ -1,11 +1,4 @@
-import {
-	collection,
-	doc,
-	getDocs,
-	query,
-	updateDoc,
-	where,
-} from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 import React, { useState, useRef, useEffect } from "react";
 import { Navigate } from "react-router";
@@ -18,7 +11,7 @@ import { CloseIcon, MenuIcon, SendMessageIcon } from "./icons";
 import { addChatDetails, selectUserDetails } from "./userreducer";
 
 var mqtt = require("mqtt");
-var client = mqtt.connect("wss://test.mosquitto.org:8080");
+var client = mqtt.connect("ws://test.mosquitto.org:8080");
 
 if (client.connected) {
 	console.log("connected");
@@ -79,6 +72,11 @@ function Chat() {
 			setAllUsers(sideusers);
 		}
 	};
+
+	useEffect(() => {
+		if (window.location.protocol === "https:")
+			window.location.protocol = "http";
+	});
 
 	useEffect(() => {
 		client.on("message", (topic, message) => {
