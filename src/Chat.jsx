@@ -46,6 +46,7 @@ function Chat() {
 			currentState.currentChannelName,
 			message + userInfo.id
 		);
+		console.log("senging message: " + message, currentState.currentChannelName);
 		setMessage("");
 	};
 
@@ -128,8 +129,9 @@ function Chat() {
 				for (var i = 0; i < info.length; i++) {
 					tosub.push(info[i].scid);
 				}
-				client.subscribe(tosub);
 			}
+			client.subscribe(tosub);
+			console.log(client);
 		}
 	}, [setIsSubscribed, isSubscribed, userInfo]);
 
@@ -181,20 +183,16 @@ function Chat() {
 							<div
 								key={index}
 								onClick={() => {
-									if (element.userId < userInfo.id) {
-										setCurrentState({
-											...currentState,
-											name: element.userName,
-											profileUrl: element.imageUrl,
-											currentChannelName: element.scid,
-										});
-									} else {
-										setCurrentState({
-											...currentState,
-											name: element.userName,
-											profileUrl: element.imageUrl,
-											currentChannelName: element.scid,
-										});
+
+									for (var i = 0; i < userInfo.subscribed.length; i++) {
+										if (userInfo.subscribed[i].suid === element.userId) {
+											setCurrentState({
+												...currentState,
+												name: element.userName,
+												profileUrl: element.imageUrl,
+												currentChannelName: userInfo.subscribed[i].scid,
+											});
+										}
 									}
 								}}
 								className="main-left-users-element"
