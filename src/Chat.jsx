@@ -18,7 +18,7 @@ import { CloseIcon, MenuIcon, SendMessageIcon } from "./icons";
 import { addChatDetails, selectUserDetails } from "./userreducer";
 
 var mqtt = require("mqtt");
-var client = mqtt.connect("wss://test.mosquitto.org:8080");
+var client = mqtt.connect("https://test.mosquitto.org:8080");
 
 if (client.connected) {
 	console.log("connected");
