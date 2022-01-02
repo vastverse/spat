@@ -11,7 +11,7 @@ import { CloseIcon, MenuIcon, SendMessageIcon } from "./icons";
 import { addChatDetails, selectUserDetails } from "./userreducer";
 
 var mqtt = require("mqtt");
-var client = mqtt.connect("ws://test.mosquitto.org:8080");
+var client = mqtt.connect("ws://test.mosquitto.org:8000");
 
 function Chat() {
 	const input = useRef(null);
@@ -59,11 +59,6 @@ function Chat() {
 			setAllUsers(sideusers);
 		}
 	};
-
-	useEffect(() => {
-		if (window.location.protocol === "https:")
-			window.location.protocol = "http";
-	});
 
 	useEffect(() => {
 		client.on("message", (topic, message) => {
