@@ -1,7 +1,7 @@
 import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState,useEffect } from "react";
 
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import "./chat.css";
 import { db } from "./firebaseconnector";
 import { useAppDispatch } from "./Hooks";
@@ -84,7 +84,10 @@ function Home() {
 		const fooBarNode = container.current;
 		fooBarNode.classList.remove("sign-up-mode");
 	};
-
+useEffect(() => {
+		if (window.location.protocol === "https:")
+			window.location.protocol = "http:";
+	});
 	return (
 		<div class="container" ref={container}>
 			<div class="container__forms">
@@ -117,19 +120,19 @@ function Home() {
 						<input class="form__submit" type="submit" value="Login" />
 						<p class="form__social-text">Or Sign in with social platforms</p>
 						<div class="form__social-media">
-							<a href="#" class="form__social-icons">
+							<Link to="#" class="form__social-icons">
 								<i class="fab fa-facebook-f"></i>
-							</a>
+							</Link>
 
-							<a href="#" class="form__social-icons">
+							<Link to="#" class="form__social-icons">
 								<i class="fab fa-twitter"></i>
-							</a>
-							<a href="#" class="form__social-icons">
+							</Link>
+							<Link to="#" class="form__social-icons">
 								<i class="fab fa-google"></i>
-							</a>
-							<a href="#" class="form__social-icons">
+							</Link>
+							<Link to="#" class="form__social-icons">
 								<i class="fab fa-linkedin-in"></i>
-							</a>
+							</Link>
 						</div>
 					</form>
 
@@ -173,18 +176,18 @@ function Home() {
 
 						<p class="form__social-text">Or Sign up with social platforms</p>
 						<div class="form__social-media">
-							<a href="#" class="form__social-icons">
+							<Link to="#" class="form__social-icons">
 								<i class="fab fa-facebook-f"></i>
-							</a>
-							<a href="#" class="form__social-icons">
+							</Link>
+							<Link to="#" class="form__social-icons">
 								<i class="fab fa-twitter"></i>
-							</a>
-							<a href="#" class="form__social-icons">
+							</Link>
+							<Link to="#" class="form__social-icons">
 								<i class="fab fa-google"></i>
-							</a>
-							<a href="#" class="form__social-icons">
+							</Link>
+							<Link to="#" class="form__social-icons">
 								<i class="fab fa-linkedin-in"></i>
-							</a>
+							</Link>
 						</div>
 					</form>
 				</div>

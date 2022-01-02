@@ -11,8 +11,16 @@ import { CloseIcon, MenuIcon, SendMessageIcon } from "./icons";
 import { addChatDetails, selectUserDetails } from "./userreducer";
 
 var mqtt = require("mqtt");
-var client = mqtt.connect("ws://test.mosquitto.org:8000");
 
+
+var client = mqtt.connect("wss://test.mosquitto.org:8080/");
+
+
+if (client.connected) {
+	console.log("connected");
+} else {
+	console.log("sorry not able to connect");
+}
 function Chat() {
 	const input = useRef(null);
 	const userInfo = useAppSelector(selectUserDetails);
@@ -29,6 +37,7 @@ function Chat() {
 	});
 
 	const sendMessage = async () => {
+		console.log(currentState.currentChannelName);
 		await client.publish(
 			currentState.currentChannelName,
 			message + userInfo.id
@@ -41,10 +50,10 @@ function Chat() {
 		if (userInfo.subscribed) {
 			var info = userInfo.subscribed;
 			var tosub = [];
+
 			for (var i = 0; i < info.length; i++) {
 				tosub.push(info[i].suid);
 			}
-
 			const q = await query(
 				collection(db, "users"),
 				where("userId", "in", tosub)
@@ -53,7 +62,14 @@ function Chat() {
 			const querySnapshot = await getDocs(q);
 			var sideusers = [];
 			querySnapshot?.forEach(async (docdetails) => {
-				sideusers.push(docdetails.data());
+				var data = docdetails.data();
+				for (var i = 0; i < info.length; i++) {
+					if (info[i].suid === data.userId) {
+						data.scid = info[i].scid;
+						break;
+					}
+				}
+				sideusers.push(data);
 			});
 
 			setAllUsers(sideusers);
@@ -126,7 +142,7 @@ function Chat() {
 		} catch (error) {
 			console.error("Error updating document: ", error);
 		}
-	});
+	}, []);
 
 	useEffect(() => {
 		if (userInfo.chat[currentState.currentChannelName]) {
@@ -163,6 +179,7 @@ function Chat() {
 							<div
 								key={index}
 								onClick={() => {
+
 									for (var i = 0; i < userInfo.subscribed.length; i++) {
 										if (userInfo.subscribed[i].suid === element.userId) {
 											setCurrentState({
