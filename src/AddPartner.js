@@ -94,7 +94,7 @@ function AddPartner() {
 				temp2.push(temp);
 			}
 		});
-		console.log(temp2);
+
 		setUserData(temp2);
 	};
 	useEffect(() => {
@@ -134,6 +134,9 @@ function AddPartner() {
 					</div>
 				);
 			})}
+			{!userData.length && (
+				<h1 style={{ width: "100%", textAlign: "center" }}>Loading</h1>
+			)}
 		</>
 	);
 }
