@@ -721,6 +721,7 @@ form.form__sign-up {
   border-radius: 5px;
   padding: 1rem;
   padding-top: 0.3rem;
+  overflow-y: auto;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -801,5 +802,15 @@ form.form__sign-up {
   font-size: 2rem;
   -webkit-transform: rotateZ(45deg);
           transform: rotateZ(45deg);
+}
+
+.Dropshadow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
 }
 /*# sourceMappingURL=chat.css.map */

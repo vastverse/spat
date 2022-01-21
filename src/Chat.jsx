@@ -11,7 +11,7 @@ import { CloseIcon, MenuIcon, SendMessageIcon } from "./icons";
 import { addChatDetails, selectUserDetails } from "./userreducer";
 
 var mqtt = require("mqtt");
-var client = mqtt.connect("ws://test.mosquitto.org:8000");
+var client = mqtt.connect("ws://18.191.177.244:8080");
 
 function Chat() {
 	const input = useRef(null);
@@ -262,16 +262,18 @@ function Chat() {
 				)}
 			</div>
 			{partnerPopup ? (
-				<div className="AddPartner">
-					<div
-						onClick={() => {
-							setPartnerPopup(false);
-						}}
-						className="AddPartner-cross"
-					>
-						+
+				<div className="Dropshadow">
+					<div className="AddPartner">
+						<div
+							onClick={() => {
+								setPartnerPopup(false);
+							}}
+							className="AddPartner-cross"
+						>
+							+
+						</div>
+						<AddPartner />
 					</div>
-					<AddPartner />
 				</div>
 			) : (
 				<></>

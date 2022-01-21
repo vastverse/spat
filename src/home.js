@@ -115,22 +115,6 @@ function Home() {
 							/>
 						</div>
 						<input class="form__submit" type="submit" value="Login" />
-						<p class="form__social-text">Or Sign in with social platforms</p>
-						<div class="form__social-media">
-							<a href="#" class="form__social-icons">
-								<i class="fab fa-facebook-f"></i>
-							</a>
-
-							<a href="#" class="form__social-icons">
-								<i class="fab fa-twitter"></i>
-							</a>
-							<a href="#" class="form__social-icons">
-								<i class="fab fa-google"></i>
-							</a>
-							<a href="#" class="form__social-icons">
-								<i class="fab fa-linkedin-in"></i>
-							</a>
-						</div>
 					</form>
 
 					<form action="" class="form__sign-up" onSubmit={onSubmitSignUp}>
@@ -170,22 +154,6 @@ function Home() {
 						</div>
 
 						<input class="form__submit" type="submit" value="Sign Up" />
-
-						<p class="form__social-text">Or Sign up with social platforms</p>
-						<div class="form__social-media">
-							<a href="#" class="form__social-icons">
-								<i class="fab fa-facebook-f"></i>
-							</a>
-							<a href="#" class="form__social-icons">
-								<i class="fab fa-twitter"></i>
-							</a>
-							<a href="#" class="form__social-icons">
-								<i class="fab fa-google"></i>
-							</a>
-							<a href="#" class="form__social-icons">
-								<i class="fab fa-linkedin-in"></i>
-							</a>
-						</div>
 					</form>
 				</div>
 			</div>
