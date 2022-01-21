@@ -1,7 +1,7 @@
 import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import "./chat.css";
 import { db } from "./firebaseconnector";
 import { useAppDispatch } from "./Hooks";
@@ -84,7 +84,10 @@ function Home() {
 		const fooBarNode = container.current;
 		fooBarNode.classList.remove("sign-up-mode");
 	};
-
+	useEffect(() => {
+		if (window.location.protocol === "https:")
+			window.location.protocol = "http:";
+	});
 	return (
 		<div class="container" ref={container}>
 			<div class="container__forms">

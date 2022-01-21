@@ -98,8 +98,8 @@ function AddPartner() {
 		setUserData(temp2);
 	};
 	useEffect(() => {
-		getUserList();
-	}, []);
+		if (userData.length) getUserList();
+	});
 	return (
 		<>
 			{userData.map((element, index) => {
