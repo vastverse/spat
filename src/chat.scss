@@ -709,3 +709,20 @@ form.form__sign-up {
 	height: 100vh;
 	backdrop-filter: blur(6px);
 }
+
+.error {
+	background-color: red;
+
+	z-index: 100;
+	display: flex;
+	gap: 1rem;
+	padding: 0.5rem;
+	color: white;
+	border-radius: 5px;
+	&-cross {
+		font-size: 1.5rem;
+		transform: rotateZ(45deg);
+		line-height: 1rem;
+		cursor: pointer;
+	}
+}

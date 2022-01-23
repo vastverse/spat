@@ -813,4 +813,24 @@ form.form__sign-up {
   -webkit-backdrop-filter: blur(6px);
           backdrop-filter: blur(6px);
 }
+
+.error {
+  background-color: red;
+  z-index: 100;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem;
+  color: white;
+  border-radius: 5px;
+}
+
+.error-cross {
+  font-size: 1.5rem;
+  -webkit-transform: rotateZ(45deg);
+          transform: rotateZ(45deg);
+  line-height: 1rem;
+  cursor: pointer;
+}
 /*# sourceMappingURL=chat.css.map */

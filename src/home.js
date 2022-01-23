@@ -8,6 +8,10 @@ import { useAppDispatch } from "./Hooks";
 import { addUserDetails } from "./userreducer";
 import { v4 as uuidv4 } from "uuid";
 function Home() {
+	const [error, setError] = useState({
+		state: "",
+		message: "",
+	});
 	const container = useRef(null);
 	const dispatch = useAppDispatch();
 	const [redirect, setRedirect] = useState(false);
@@ -27,13 +31,34 @@ function Home() {
 	const onSubmitSignUp = async (e) => {
 		e.preventDefault();
 		try {
+			if (!userDetails.userEmail) {
+				setError({ ...error, state: true, message: "email id not found" });
+				return;
+			}
+			if (!userDetails.userPassword) {
+				setError({ ...error, state: true, message: "password not found" });
+				return;
+			}
+			const q = query(
+				collection(db, "users"),
+				where("userEmail", "==", userDetails.userEmail.toLowerCase)
+			);
+
+			const querySnapshot = await getDocs(q);
+			var temp = false;
+			querySnapshot.forEach((doc) => {
+				setError({ ...error, state: true, message: "Email id already exists" });
+				temp = true;
+				return;
+			});
+			if (temp) return;
 			addDoc(collection(db, "users"), userDetails)
 				.then((data) => {
 					setRedirect(true);
 					dispatch(
 						addUserDetails({
 							id: userDetails.userId,
-							email: userDetails.userEmail[0],
+							email: userDetails.userEmail[0].toLowerCase,
 							name: userDetails.userName[0],
 							imageUrl: userDetails.imageUrl,
 						})
@@ -43,38 +68,52 @@ function Home() {
 					console.log(err);
 				});
 		} catch (e) {
+			setError({ ...error, state: true, message: "Internal server error" });
 			console.error("Error adding document: ", e);
 		}
 	};
 	const onSubmitSignIn = async (e) => {
 		e.preventDefault();
-		const q = query(
-			collection(db, "users"),
-			where(
-				"userEmail",
-				"==",
-				userDetails.userEmail,
-				"userPassword",
-				"==",
-				userDetails.userPassword
-			)
-		);
-
-		const querySnapshot = await getDocs(q);
-		querySnapshot.forEach((doc) => {
-			var data = doc.data();
-
-			dispatch(
-				addUserDetails({
-					id: data.userId,
-					email: data.userEmail[0],
-					name: data.userName[0],
-					imageUrl: data.imageUrl,
-					subscribed: data.subscribed,
-				})
+		if (!userDetails.userEmail || !userDetails.userPassword) {
+			setError({
+				...error,
+				state: true,
+				message: "Not got required infomation",
+			});
+			return;
+		}
+		try {
+			const q = query(
+				collection(db, "users"),
+				where(
+					"userEmail",
+					"==",
+					userDetails.userEmail.toLowerCase,
+					"userPassword",
+					"==",
+					userDetails.userPassword
+				)
 			);
-			setRedirect(true);
-		});
+
+			const querySnapshot = await getDocs(q);
+			querySnapshot.forEach((doc) => {
+				var data = doc.data();
+
+				dispatch(
+					addUserDetails({
+						id: data.userId,
+						email: data.userEmail[0],
+						name: data.userName[0],
+						imageUrl: data.imageUrl,
+						subscribed: data.subscribed,
+					})
+				);
+				setRedirect(true);
+			});
+			setError({ ...error, state: true, message: "Data not found" });
+		} catch (err) {
+			setError({ ...error, state: true, message: "Internal server error" });
+		}
 	};
 	const signInBtnEvent = () => {
 		const fooBarNode = container.current;
@@ -94,7 +133,19 @@ function Home() {
 				<div class="form">
 					<form action="" class="form__sign-in" onSubmit={onSubmitSignIn}>
 						<h2 class="form__title">Sign In</h2>
-
+						{error.state && (
+							<div className="error">
+								{error.message}{" "}
+								<div
+									onClick={() => {
+										setError({ ...error, state: "" });
+									}}
+									className="error-cross"
+								>
+									+
+								</div>
+							</div>
+						)}
 						<div class="form__input-field">
 							<i class="fas fa-user"></i>
 							<input
@@ -122,6 +173,19 @@ function Home() {
 
 					<form action="" class="form__sign-up" onSubmit={onSubmitSignUp}>
 						<h2 class="form__title">Sign Up</h2>
+						{error.state && (
+							<div className="error">
+								{error.message}{" "}
+								<div
+									onClick={() => {
+										setError({ ...error, state: "" });
+									}}
+									className="error-cross"
+								>
+									+
+								</div>
+							</div>
+						)}
 						<div class="form__input-field">
 							<i class="fas fa-user"></i>
 							<input
