@@ -41,7 +41,7 @@ function Home() {
 			}
 			const q = query(
 				collection(db, "users"),
-				where("userEmail", "==", userDetails.userEmail.toLowerCase)
+				where("userEmail", "==", userDetails.userEmail)
 			);
 
 			const querySnapshot = await getDocs(q);
@@ -58,7 +58,7 @@ function Home() {
 					dispatch(
 						addUserDetails({
 							id: userDetails.userId,
-							email: userDetails.userEmail[0].toLowerCase,
+							email: userDetails.userEmail[0],
 							name: userDetails.userName[0],
 							imageUrl: userDetails.imageUrl,
 						})
@@ -88,7 +88,7 @@ function Home() {
 				where(
 					"userEmail",
 					"==",
-					userDetails.userEmail.toLowerCase,
+					userDetails.userEmail,
 					"userPassword",
 					"==",
 					userDetails.userPassword
@@ -98,7 +98,6 @@ function Home() {
 			const querySnapshot = await getDocs(q);
 			querySnapshot.forEach((doc) => {
 				var data = doc.data();
-
 				dispatch(
 					addUserDetails({
 						id: data.userId,

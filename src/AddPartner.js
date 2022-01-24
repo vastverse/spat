@@ -19,7 +19,7 @@ function AddPartner() {
 			const toinsert = userInfo.id + id;
 			var q = query(
 				collection(db, "users"),
-				where("userId", "==", userInfo.id ? userInfo.id : "amit")
+				where("userId", "==", userInfo.id ? userInfo.id : "")
 			);
 			var querySnapshot = await getDocs(q);
 			querySnapshot.forEach(async (docdetails) => {
@@ -98,7 +98,7 @@ function AddPartner() {
 		setUserData(temp2);
 	};
 	useEffect(() => {
-		if (userData.length) getUserList();
+		if (!userData.length) getUserList();
 	});
 	return (
 		<>
