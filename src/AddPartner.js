@@ -14,6 +14,7 @@ import { selectUserDetails } from "./userreducer";
 function AddPartner() {
 	const [userData, setUserData] = useState([]);
 	const userInfo = useAppSelector(selectUserDetails);
+	const [haveData, setHaveData] = useState(false);
 	const addSubscriber = async (id) => {
 		try {
 			const toinsert = userInfo.id + id;
@@ -40,11 +41,8 @@ function AddPartner() {
 						console.error("Error updating document: ", error);
 					});
 			});
-
-			q = query(
-				collection(db, "users"),
-				where("userId", "==", id ? id : "amit")
-			);
+			var temp = "spat";
+			q = query(collection(db, "users"), where("userId", "==", id ? id : temp));
 			querySnapshot = await getDocs(q);
 			querySnapshot.forEach(async (docdetails) => {
 				const userRef = await doc(db, "users", docdetails.id);
@@ -94,12 +92,14 @@ function AddPartner() {
 				temp2.push(temp);
 			}
 		});
-
 		setUserData(temp2);
 	};
 	useEffect(() => {
-		if (!userData.length) getUserList();
-	});
+		if (!haveData) {
+			getUserList();
+			setHaveData(true);
+		}
+	}, [haveData, setHaveData]);
 	return (
 		<>
 			{userData.map((element, index) => {
@@ -134,8 +134,13 @@ function AddPartner() {
 					</div>
 				);
 			})}
-			{!userData.length && (
+			{!haveData && (
 				<h1 style={{ width: "100%", textAlign: "center" }}>Loading</h1>
+			)}
+			{!haveData && !userData.length && (
+				<h1 style={{ width: "100%", textAlign: "center" }}>
+					Do Not Have Any New Users
+				</h1>
 			)}
 		</>
 	);

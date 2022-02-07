@@ -11,7 +11,7 @@ import { CloseIcon, MenuIcon, SendMessageIcon } from "./icons";
 import { addChatDetails, selectUserDetails } from "./userreducer";
 
 var mqtt = require("mqtt");
-var client = mqtt.connect("ws://18.191.177.244:8080");
+var client = mqtt.connect("ws://3.9.173.112:8888");
 
 if (client.connected) {
 	console.log("connected");
@@ -51,10 +51,7 @@ function Chat() {
 			for (var i = 0; i < info.length; i++) {
 				tosub.push(info[i].suid);
 			}
-			const q = await query(
-				collection(db, "users"),
-				where("userId", "in", tosub)
-			);
+			const q = await query(collection(db, "users"));
 
 			const querySnapshot = await getDocs(q);
 			var sideusers = [];
@@ -63,10 +60,10 @@ function Chat() {
 				for (var i = 0; i < info.length; i++) {
 					if (info[i].suid === data.userId) {
 						data.scid = info[i].scid;
+						sideusers.push(data);
 						break;
 					}
 				}
-				sideusers.push(data);
 			});
 
 			setAllUsers(sideusers);
@@ -161,7 +158,7 @@ function Chat() {
 	const [isMenuClosed, setIsMenuClosed] = useState(true);
 	return (
 		<div className="main">
-			<div className="main-left">
+			<div style={{ display: "flex", flexDirection: "column", width: "30%" }}>
 				<div className="main-left-avtar">
 					<div className="main-left-avtar-logo">Spat</div>
 					<img
@@ -170,40 +167,42 @@ function Chat() {
 						alt=""
 					/>
 				</div>
-				<div className="main-left-users">
-					{allUsers.map((element, index) => {
-						return (
-							<div
-								key={index}
-								onClick={() => {
-									for (var i = 0; i < userInfo.subscribed.length; i++) {
-										if (userInfo.subscribed[i].suid === element.userId) {
-											setCurrentState({
-												...currentState,
-												name: element.userName,
-												profileUrl: element.imageUrl,
-												currentChannelName: userInfo.subscribed[i].scid,
-											});
+				<div className="main-left">
+					<div className="main-left-users">
+						{allUsers.map((element, index) => {
+							return (
+								<div
+									key={index}
+									onClick={() => {
+										for (var i = 0; i < userInfo.subscribed.length; i++) {
+											if (userInfo.subscribed[i].suid === element.userId) {
+												setCurrentState({
+													...currentState,
+													name: element.userName,
+													profileUrl: element.imageUrl,
+													currentChannelName: userInfo.subscribed[i].scid,
+												});
+											}
 										}
-									}
-								}}
-								className="main-left-users-element"
-							>
-								<div className="main-left-users-element-avtar">
-									<img
-										className="main-left-users-element-avtar-img"
-										src={element.imageUrl}
-										alt=""
-									/>
-								</div>
-								<div className="main-left-users-element-details">
-									<div className="main-left-users-element-details-name">
-										{element.userName}
+									}}
+									className="main-left-users-element"
+								>
+									<div className="main-left-users-element-avtar">
+										<img
+											className="main-left-users-element-avtar-img"
+											src={element.imageUrl}
+											alt=""
+										/>
+									</div>
+									<div className="main-left-users-element-details">
+										<div className="main-left-users-element-details-name">
+											{element.userName}
+										</div>
 									</div>
 								</div>
-							</div>
-						);
-					})}
+							);
+						})}
+					</div>
 				</div>
 			</div>
 			<div className="main-right">
