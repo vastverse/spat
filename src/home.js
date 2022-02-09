@@ -12,6 +12,7 @@ function Home() {
 		state: "",
 		message: "",
 	});
+
 	const container = useRef(null);
 	const dispatch = useAppDispatch();
 	const [redirect, setRedirect] = useState(false);
@@ -65,7 +66,7 @@ function Home() {
 					);
 				})
 				.catch((err) => {
-					console.log(err);
+					console.error(err);
 				});
 		} catch (e) {
 			setError({ ...error, state: true, message: "Internal server error" });
