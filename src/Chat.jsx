@@ -146,32 +146,30 @@ function Chat() {
 		}
 	};
 	const getConnectionInfo = async () => {
-		if (userInfo.subscribed) {
-			var info = userInfo.subscribed;
-			var tosub = [];
+		var info = userInfo.subscribed;
+		// var tosub = [];
 
-			for (var i = 0; i < info.length; i++) {
-				tosub.push(info[i].suid);
-			}
-			const q = await query(collection(db, "users"));
+		// for (var i = 0; i < info.length; i++) {
+		// 	tosub.push(info[i].suid);
+		// }
+		const q = await query(collection(db, "users"));
 
-			const querySnapshot = await getDocs(q);
-			var sideusers = [];
-			querySnapshot?.forEach(async (docdetails) => {
-				var data = docdetails.data();
-				for (var i = 0; i < info.length; i++) {
-					if (info[i].suid === data.userId) {
-						data.scid = info[i].scid;
-						sideusers.push(data);
-						break;
-					}
+		const querySnapshot = await getDocs(q);
+		var sideusers = [];
+		querySnapshot?.forEach(async (docdetails) => {
+			var data = docdetails.data();
+			for (var i = 0; i < info?.length; i++) {
+				if (info[i].suid === data.userId) {
+					data.scid = info[i].scid;
+					sideusers.push(data);
+					break;
 				}
-			});
+			}
+		});
 
-			setAllUsers(sideusers);
-			setHaveData(true);
-			setFetchConnectionData(false);
-		}
+		setAllUsers(sideusers);
+		setHaveData(true);
+		setFetchConnectionData(false);
 	};
 	const getUserInfo = async () => {
 		try {
@@ -241,7 +239,7 @@ function Chat() {
 	}, [userInfo, dispatch]);
 
 	useEffect(() => {
-		if (!isSubscribed && userInfo.subscribed) {
+		if ((!isSubscribed && userInfo.subscribed) || fetchConnectionData) {
 			setIsSubscribed(true);
 			var info = userInfo.subscribed;
 			var tosub = [];
@@ -252,7 +250,7 @@ function Chat() {
 			}
 			client.subscribe(tosub);
 		}
-	}, [setIsSubscribed, isSubscribed, userInfo]);
+	}, [setIsSubscribed, isSubscribed, userInfo, fetchConnectionData]);
 
 	useEffect(() => {
 		if (input && input.current && input.current.scrollTop)
