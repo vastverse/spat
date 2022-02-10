@@ -147,11 +147,7 @@ function Chat() {
 	};
 	const getConnectionInfo = async () => {
 		var info = userInfo.subscribed;
-		// var tosub = [];
 
-		// for (var i = 0; i < info.length; i++) {
-		// 	tosub.push(info[i].suid);
-		// }
 		const q = await query(collection(db, "users"));
 
 		const querySnapshot = await getDocs(q);
@@ -363,7 +359,15 @@ function Chat() {
 									setIsMenuClosed(!isMenuClosed);
 								}}
 							>
-								{isMenuClosed ? <MenuIcon /> : <CloseIcon />}
+								<CloseIcon
+									onClick={() => {
+										setCurrentState({
+											name: "",
+											profileUrl: "",
+											currentChannelName: "",
+										});
+									}}
+								/>
 							</div>
 						</div>
 						<div className="main-right-chat" ref={input}>
