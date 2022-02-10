@@ -476,7 +476,30 @@ function Chat() {
 					</div>
 				</div>
 			) : (
-				<></>
+				<div
+					onClick={() => {
+						setPartnerPopup(true);
+					}}
+					style={{
+						cursor: "pointer",
+						position: "absolute",
+						right: "1rem",
+						top: "5rem",
+						fontSize: "2rem",
+						color: "black",
+						width: "2.5rem",
+						height: "2.5rem",
+						lineHeight: "1rem",
+						borderRadius: "5px",
+						backgroundColor: "white",
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					{" "}
+					+{" "}
+				</div>
 			)}
 			{!userInfo.id && <Navigate to="/" />}
 		</div>
