@@ -46,6 +46,7 @@ function Chat() {
 		profileUrl: "",
 		currentChannelName: "",
 	});
+	const [currentSubto, setCurrentSubto] = useState([]);
 	const [addPartnerLoader, setAddPartnerLoader] = useState({
 		id: "",
 		state: "",
@@ -58,7 +59,80 @@ function Chat() {
 
 		setMessage("");
 	};
+	const removeSubscription = async (chatid, second) => {
+		try {
+			var q = query(
+				collection(db, "users"),
+				where("userId", "==", userInfo.id ? userInfo.id : "")
+			);
+			var querySnapshot = await getDocs(q);
+			querySnapshot.forEach(async (docdetails) => {
+				const userRef = await doc(db, "users", docdetails.id);
+				var temp = docdetails.data().subscribed;
+				var temp2 = [];
+				for (var i = 0; i < temp.length; i++) {
+					if (temp[i].scid !== chatid) {
+						temp2.push(temp[i]);
+					}
+				}
+				await updateDoc(userRef, {
+					subscribed: temp2,
+				})
+					.then(async () => {
+						var q1 = query(
+							collection(db, "users"),
+							where("userId", "==", second ? second : "")
+						);
+						var querySnapshot1 = await getDocs(q1);
+						querySnapshot1.forEach(async (docdetails1) => {
+							const userRef1 = await doc(db, "users", docdetails1.id);
+							var temp = docdetails1.data().subscribed;
+							var temp3 = [];
+							for (var i = 0; i < temp.length; i++) {
+								if (temp[i].scid !== chatid) {
+									temp3.push(temp[i]);
+								}
+							}
+							updateDoc(userRef1, {
+								subscribed: temp3,
+							})
+								.then(async () => {
+									dispatch(
+										addUserDetails({
+											id: docdetails.data()?.userId,
+											email: docdetails.data()?.userEmail[0],
+											name: docdetails.data()?.userName[0],
+											imageUrl: docdetails.data()?.imageUrl,
+											subscribed: temp2,
+										})
+									);
 
+									setCurrentSubto((prevState) => {
+										var info = temp2;
+										var sub = [];
+										if (!info) info = [];
+										for (var i = 0; i < info.length; i++) {
+											sub.push(info[i].suid);
+										}
+										sub.push(userInfo.id);
+
+										return sub;
+									});
+								})
+								.catch((error) => {
+									console.error("Error updating document: ", error);
+								});
+						});
+					})
+
+					.catch((error) => {
+						console.error("Error updating document: ", error);
+					});
+			});
+		} catch (error) {
+			console.error("Error updating document: ", error);
+		}
+	};
 	const addSubscriber = async (id) => {
 		try {
 			const toinsert = userInfo.id + id;
@@ -112,6 +186,11 @@ function Chat() {
 							}
 							return data;
 						});
+						setAddPartnerLoader({
+							...addPartnerLoader,
+							id: "",
+							state: false,
+						});
 					})
 					.catch((error) => {
 						console.error("Error updating document: ", error);
@@ -121,18 +200,22 @@ function Chat() {
 			console.error("Error updating document: ", error);
 		}
 	};
-
 	const getUserList = async () => {
-		var info = userInfo.subscribed;
-		var sub = [];
-		if (!info) info = [];
-		for (var i = 0; i < info.length; i++) {
-			sub.push(info[i].suid);
+		if (currentSubto.length === 0) {
+			var info = userInfo.subscribed;
+			var sub = [];
+			if (!info) info = [];
+			for (var i = 0; i < info.length; i++) {
+				sub.push(info[i].suid);
+			}
+			sub.push(userInfo.id);
+		} else {
+			sub = currentSubto;
 		}
-		sub.push(userInfo.id);
 		const q = query(collection(db, "users"));
 		var temp2 = [];
 		const querySnapshot = await getDocs(q);
+
 		querySnapshot.forEach((doc) => {
 			var temp = doc.data();
 			if (!sub.includes(temp.userId)) {
@@ -290,7 +373,10 @@ function Chat() {
 			setHaveData(true);
 		}
 	}, [haveData, setHaveData, userInfo.subscribed]);
-
+	useEffect(() => {
+		setFetchData(true);
+		setHaveData(false);
+	}, [currentSubto]);
 	const [isMenuClosed, setIsMenuClosed] = useState(true);
 	return (
 		<div className="main">
@@ -362,6 +448,18 @@ function Chat() {
 								<CloseIcon
 									onClick={() => {
 										client.unsubscribe(currentState.currentChannelName);
+										for (var i = 0; i < userInfo.subscribed.length; i++) {
+											if (
+												userInfo.subscribed[i].scid ===
+												currentState.currentChannelName
+											) {
+												removeSubscription(
+													currentState.currentChannelName,
+													userInfo.subscribed[i].suid
+												);
+												break;
+											}
+										}
 
 										setCurrentState({
 											name: "",
