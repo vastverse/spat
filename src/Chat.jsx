@@ -17,7 +17,7 @@ import { db } from "./firebaseconnector";
 
 import { useAppDispatch, useAppSelector } from "./Hooks";
 
-import { CloseIcon, MenuIcon, SendMessageIcon } from "./icons";
+import { CloseIcon, SendMessageIcon } from "./icons";
 import {
 	addChatDetails,
 	addUserDetails,
@@ -361,6 +361,8 @@ function Chat() {
 							>
 								<CloseIcon
 									onClick={() => {
+										client.unsubscribe(currentState.currentChannelName);
+
 										setCurrentState({
 											name: "",
 											profileUrl: "",
