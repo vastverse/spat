@@ -1,45 +1,166 @@
 import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect} from "react";
 
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import "./chat.css";
 import { db } from "./firebaseconnector";
 import { useAppDispatch } from "./Hooks";
+import Signup from './components/Signup';
+import Login from './components/Login';
 import { addUserDetails } from "./userreducer";
-import { v4 as uuidv4 } from "uuid";
-function Home() {
-	const [error, setError] = useState({
-		state: "",
-		message: "",
-	});
+//import { v4 as uuidv4 } from "uuid";
 
-	const container = useRef(null);
-	const dispatch = useAppDispatch();
-	const [redirect, setRedirect] = useState(false);
-	const [userDetails, setUserDetails] = useState({
-		userName: "",
-		userPassword: "",
-		userEmail: "",
-		userId: uuidv4(),
-		imageUrl: "",
-	});
-	const onChange = (e) => {
+
+
+function Home() {
+
+  const [error, setError] = useState({
+    state: "",
+    message: "",
+  });
+
+  const container = useRef(null);
+  const dispatch = useAppDispatch();
+  const [redirect, setRedirect] = useState(false);
+
+  /*const [userDetails, setUserDetails] = useState({
+    userName: "",
+    userEmail: "",
+    userId: "",
+    imageUrl: "",
+  });*/
+
+  const loginCallback = async (verifiedResult) => {
+    //const userName = verifiedResult.email.split('@')[0];
+    //const userEmail = verifiedResult.email;
+    const userId = verifiedResult.userId;
+    //const imageUrl = verifiedResult.photoUrl;
+
+    try {
+      const q = query(
+        collection(db, "users"),
+        where(
+          "userId",
+          "==",
+          userId,)
+      );
+      //console.log(`User details: ${userEmail} ${userId} ${userName}`);
+
+      const querySnapshot = await
+        getDocs(q);
+      querySnapshot.forEach((doc) => {
+        var data = doc.data();
+        console.log(`data: ${data.userId}, ${data.userEmail}, ${data.userName}, ${data.imageUrl}`)
+        dispatch(
+          addUserDetails({
+            id: data.userId,
+            email: data.userEmail,
+            name: data.userName,
+            imageUrl: data.imageUrl,
+            subscribed: data.subscribed,
+          })
+        );
+        setRedirect(true);
+      });
+
+      setError({...error, state: true, message: "Data not found"});
+    } catch (err) {
+      setError({...error, state: true, message: "Internal server error"});
+    }
+  };
+
+
+  const handleSubmit = event => {
+    event.preventDefault();
+    //setSubmitting(true);
+
+   /* setTimeout(() => {
+      setSubmitting(false);
+      setUserDetails(
+      	{reset: true}
+      	);
+    }, 3000);*/
+  }
+
+	const signupCallback = async (verifiedResult) => {
+
+    const userName = verifiedResult.email.split('@')[0];
+    const userEmail = verifiedResult.email;
+    const userId = verifiedResult.userId;
+    const imageUrl = verifiedResult.photoUrl;
+
+	  try {
+      if (!userEmail) {
+        setError({ ...error, state: true, message: "Email not found" });
+        return;
+      }
+      const q = query(
+        collection(db, "users"),
+        where("userEmail", "==", userEmail)
+      );
+
+      const querySnapshot = await getDocs(q);
+      var temp = false;
+      querySnapshot.forEach((doc) => {
+        setError({ ...error, state: true, message: "Email account already exists" });
+        temp = true;
+        return;
+      });
+
+      const tempUserDetails = {
+        userName: userName,
+        userId: userId,
+        imageUrl: imageUrl,
+        userEmail: userEmail,
+      }
+
+      if (temp) return;
+      addDoc(collection(db, "users"), tempUserDetails)
+        .then((data) => {
+          setRedirect(true);
+          dispatch(
+            addUserDetails({
+              id: userId,
+              email: userEmail,
+              name: userName,
+              imageUrl: imageUrl,
+            })
+          );
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    } catch (e) {
+      setError({ ...error, state: true, message: "Internal server error" });
+      console.error("Error adding document: ", e);
+    }
+	};
+
+/*  const onChange = event => {
+    setUserDetails({
+      name: event.target.name,
+			value: event.target.value,
+			//[e.target.id]: [e.target.value],
+    });
+  };*/
+
+/*  const onChange = (e) => {
 		setUserDetails({
 			...userDetails,
 			[e.target.id]: [e.target.value],
 		});
-	};
-	const onSubmitSignUp = async (e) => {
+	};*/
+	/*const onSubmitSignUp = async (e) => {
 		e.preventDefault();
 		try {
 			if (!userDetails.userEmail) {
 				setError({ ...error, state: true, message: "email id not found" });
 				return;
 			}
-			if (!userDetails.userPassword) {
+			/*if (!userDetails.userPassword) {
 				setError({ ...error, state: true, message: "password not found" });
 				return;
-			}
+			}*
 			const q = query(
 				collection(db, "users"),
 				where("userEmail", "==", userDetails.userEmail)
@@ -72,14 +193,14 @@ function Home() {
 			setError({ ...error, state: true, message: "Internal server error" });
 			console.error("Error adding document: ", e);
 		}
-	};
-	const onSubmitSignIn = async (e) => {
+	};*/
+	/*const onSubmitSignIn = async (e) => {
 		e.preventDefault();
 		if (!userDetails.userEmail || !userDetails.userPassword) {
 			setError({
 				...error,
 				state: true,
-				message: "Not got required infomation",
+				message: "Please try again. You did not input the required information",
 			});
 			return;
 		}
@@ -90,9 +211,6 @@ function Home() {
 					"userEmail",
 					"==",
 					userDetails.userEmail,
-					"userPassword",
-					"==",
-					userDetails.userPassword
 				)
 			);
 
@@ -102,8 +220,8 @@ function Home() {
 				dispatch(
 					addUserDetails({
 						id: data.userId,
-						email: data.userEmail[0],
-						name: data.userName[0],
+						email: data.userEmail,
+						name: data.userName,
 						imageUrl: data.imageUrl,
 						subscribed: data.subscribed,
 					})
@@ -114,7 +232,7 @@ function Home() {
 		} catch (err) {
 			setError({ ...error, state: true, message: "Internal server error" });
 		}
-	};
+	};*/
 	const signInBtnEvent = () => {
 		const fooBarNode = container.current;
 		fooBarNode.classList.add("sign-up-mode");
@@ -131,8 +249,8 @@ function Home() {
 		<div class="container" ref={container}>
 			<div class="container__forms">
 				<div class="form">
-					<form action="" class="form__sign-in" onSubmit={onSubmitSignIn}>
-						<h2 class="form__title">Sign In</h2>
+					<form action="" class="form__sign-in" onSubmit={handleSubmit}>
+						<h2 className="form__title">Use your Google account to</h2>
 						{error.state && (
 							<div className="error">
 								{error.message}{" "}
@@ -146,33 +264,16 @@ function Home() {
 								</div>
 							</div>
 						)}
-						<div class="form__input-field">
-							<i class="fas fa-user"></i>
-							<input
-								id="userEmail"
-								value={userDetails.userEmail}
-								onChange={onChange}
-								type="text"
-								placeholder="Username"
-								required
-							/>
-						</div>
-						<div class="form__input-field">
-							<i class="fas fa-lock"></i>
-							<input
-								type="password"
-								id="userPassword"
-								value={userDetails.userPassword}
-								onChange={onChange}
-								placeholder="Password"
-								required
-							/>
-						</div>
-						<input class="form__submit" type="submit" value="Login" />
+
+            <div className="Google Signin">
+              <Login parentCallback = {loginCallback} />
+              <br />
+            </div>
+
 					</form>
 
-					<form action="" class="form__sign-up" onSubmit={onSubmitSignUp}>
-						<h2 class="form__title">Sign Up</h2>
+					<form action="" class="form__sign-up" onSubmit={handleSubmit}>
+						<h2 class="form__title">Use your Google account to</h2>
 						{error.state && (
 							<div className="error">
 								{error.message}{" "}
@@ -186,41 +287,11 @@ function Home() {
 								</div>
 							</div>
 						)}
-						<div class="form__input-field">
-							<i class="fas fa-user"></i>
-							<input
-								type="text"
-								placeholder="Username"
-								id="userName"
-								value={userDetails.userName}
-								onChange={onChange}
-								required
-							/>
-						</div>
-						<div class="form__input-field">
-							<i class="fas fa-envelope"></i>
-							<input
-								type="text"
-								placeholder="Email"
-								id="userEmail"
-								value={userDetails.userEmail}
-								onChange={onChange}
-								required
-							/>
-						</div>
-						<div class="form__input-field">
-							<i class="fas fa-lock"></i>
-							<input
-								type="password"
-								id="userPassword"
-								value={userDetails.userPassword}
-								onChange={onChange}
-								placeholder="Password"
-								required
-							/>
-						</div>
 
-						<input class="form__submit" type="submit" value="Sign Up" />
+            <div className="Google Signup">
+              <Signup parentCallback = {signupCallback} />
+              <br />
+            </div>
 					</form>
 				</div>
 			</div>
@@ -274,3 +345,15 @@ function Home() {
 }
 
 export default Home;
+
+/*<div class="form__input-field">
+  <i class="fas fa-user"></i>
+  <input
+    name="userEmail"
+    value={userDetails.userEmail || ''}
+    onChange={onChange}
+    type="text"
+    placeholder="Username"
+    required
+  />
+</div>*/

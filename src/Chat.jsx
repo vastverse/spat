@@ -24,6 +24,7 @@ import {
 	selectUserDetails,
 } from "./userreducer";
 import Loader from "./Loader";
+import Logout from './components/Logout';
 
 var mqtt = require("mqtt");
 var client = mqtt.connect("ws://3.9.173.112:8888");
@@ -46,6 +47,7 @@ function Chat() {
 		profileUrl: "",
 		currentChannelName: "",
 	});
+	const [logout, setLogout] = useState(false);
 	const [currentSubto, setCurrentSubto] = useState([]);
 	const [addPartnerLoader, setAddPartnerLoader] = useState({
 		id: "",
@@ -58,6 +60,9 @@ function Chat() {
 		);
 
 		setMessage("");
+	};
+	const logoutCallback = () => {
+		setLogout(true);
 	};
 	const removeSubscription = async (chatid, second) => {
 		try {
@@ -227,6 +232,7 @@ function Chat() {
 		if (temp2.length === 0) {
 			setPartnerPopup(false);
 		}
+
 	};
 	const getConnectionInfo = async () => {
 		var info = userInfo.subscribed;
@@ -264,14 +270,15 @@ function Chat() {
 				dispatch(
 					addUserDetails({
 						id: data.userId,
-						email: data.userEmail[0],
-						name: data.userName[0],
+						email: data.userEmail,
+						name: data.userName,
 						imageUrl: data.imageUrl,
 						subscribed: data.subscribed,
 					})
 				);
 				setFetchData(false);
 				setFetchConnectionData(true);
+        //console.log(`userInfo.username ${userInfo.name}`)
 			});
 		} catch (err) {
 			console.error(err);
@@ -282,11 +289,11 @@ function Chat() {
 			var note;
 			note = message.toString();
 
-			var temp = note.substring(0, note.length - 36);
+			var temp = note.substring(0, note.length - 21);
 
 			setMessages((prevState) => {
 				var data = prevState;
-				if (note.substring(note.length - 36) === userInfo.id)
+				if (note.substring(note.length - 21) === userInfo.id)
 					data.push({ message: temp, isSelf: true });
 				else data.push({ message: temp, isSelf: false });
 				return data;
@@ -300,7 +307,7 @@ function Chat() {
 					});
 				}
 			}
-			if (note.substring(note.length - 36) === userInfo.id) {
+			if (note.substring(note.length - 21) === userInfo.id) {
 				data.push({ message: temp, isSelf: true });
 			} else {
 				data.push({ message: temp, isSelf: false });
@@ -382,12 +389,16 @@ function Chat() {
 		<div className="main">
 			<div style={{ display: "flex", flexDirection: "column", width: "30%" }}>
 				<div className="main-left-avtar">
-					<div className="main-left-avtar-logo">Spat</div>
+					<div className="main-left-avtar-logo">{userInfo.name}</div>
 					<img
 						className="main-left-avtar-element"
 						src={userInfo.imageUrl}
 						alt=""
 					/>
+          <div className="Logout">
+            <Logout parentCallback={logoutCallback}/>
+            <br />
+          </div>
 				</div>
 				<div className="main-left">
 					<div className="main-left-users">
@@ -605,7 +616,7 @@ function Chat() {
 					+{" "}
 				</div>
 			)}
-			{!userInfo.id && <Navigate to="/" />}
+			{logout && <Navigate to="/" />}
 		</div>
 	);
 }
