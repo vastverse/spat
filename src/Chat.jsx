@@ -27,7 +27,34 @@ import Loader from "./Loader";
 import Logout from './components/Logout';
 
 var mqtt = require("mqtt");
-var client = mqtt.connect("ws://3.9.173.112:8888");
+/*var options = {
+  protocol: 'mqtts',
+  rejectUnauthorized: false,
+}*/
+
+var client = mqtt.connect("mqtt://3.9.173.112:8888");
+//var client = mqtt.connect("mqtt://test.mosquitto.org:8081", options);
+
+var fnv = require('fnv-plus');
+
+function generateSubscription(topic) {
+
+  const x_limit = 1000;
+  const y_limit = 1000;
+  const radius = 1;
+
+  fnv.seed('knock knock');
+  var x_hash = fnv.hash(topic);
+
+  fnv.seed('whos there?')
+  var y_hash = fnv.hash(topic);
+
+  var x = x_hash.value % x_limit;
+  var y = y_hash.value % y_limit;
+
+  var spatialSub = {x: x, y: y, radius: radius, channel: topic}
+  return 'sp: <' + JSON.stringify(spatialSub) + '>';
+}
 
 function Chat() {
 	const [userData, setUserData] = useState([]);
@@ -53,12 +80,29 @@ function Chat() {
 		id: "",
 		state: "",
 	});
-	const sendMessage = async () => {
-		await client.publish(
+
+  //const options = {
+  //  clientID: userInfo.id,
+  //  protocol: 'mqtts',
+  //  rejectUnauthorized: false,
+	//}
+
+  //var client = mqtt.connect("wss://3.9.173.112:8888");
+  //const client = mqtt.connect("mqtt://test.mosquitto.org:8081", options);
+
+
+  const sendMessage = async () => {
+		const topic = generateSubscription(currentState.currentChannelName);
+		const payload = JSON.stringify({message: message, userId: userInfo.id});
+/*		await client.publish(
 			currentState.currentChannelName,
 			message + userInfo.id
+		);*/
+		//console.log(`publishing message ${payload} to topic ${topic}`);
+    await client.publish(
+          topic,
+          payload
 		);
-
 		setMessage("");
 	};
 	const logoutCallback = () => {
@@ -286,36 +330,57 @@ function Chat() {
 	};
 	useEffect(() => {
 		client.on("message", (topic, message) => {
+			//console.log(`client.on("message") => Receiving message with topic ${topic} and message ${message}`);
+			var startIndex = topic.indexOf('<');
+      var stopIndex = topic.indexOf('>');
+			//console.log(`JSON topic ${topic.slice(startIndex+1, stopIndex)}`)
+			var topicJSON = JSON.parse(topic.slice(startIndex+1, stopIndex));
+			var messageJSON = JSON.parse(message);
 			var note;
-			note = message.toString();
+			//note = message.toString();
+			//var temp = note.substring(0, note.length - 21);
 
-			var temp = note.substring(0, note.length - 21);
+			var temp = messageJSON.message;
+			var userId = messageJSON.userId;
 
+			//console.log(`client.on("message") => temp ${temp} and userId ${userId} and topic ${topicJSON.channel}`);
+			//console.log(`client.on("message") => userInfo.id ${userInfo.id}`)
 			setMessages((prevState) => {
 				var data = prevState;
-				if (note.substring(note.length - 21) === userInfo.id)
+				if (userId === userInfo.id)
+          data.push({ message: temp, isSelf: true });
+				else
+          data.push({ message: temp, isSelf: false });
+
+				/*if (note.substring(note.length - 21) === userInfo.id)
 					data.push({ message: temp, isSelf: true });
 				else data.push({ message: temp, isSelf: false });
+				*/
 				return data;
 			});
 			var data = [];
-			if (userInfo.chat[topic]) {
-				for (var i = 0; i < userInfo.chat[topic].length; i++) {
+      //console.log(`client.on("message") => userInfo.chat[topicJSON.channel] ${userInfo.chat[topicJSON.channel]}`)
+      if (userInfo.chat[topicJSON.channel]) {
+				for (var i = 0; i < userInfo.chat[topicJSON.channel].length; i++) {
 					data.push({
-						message: userInfo.chat[topic][i].message,
-						isSelf: userInfo.chat[topic][i].isSelf,
+						message: userInfo.chat[topicJSON.channel][i].message,
+						isSelf: userInfo.chat[topicJSON.channel][i].isSelf,
 					});
 				}
 			}
-			if (note.substring(note.length - 21) === userInfo.id) {
+      if (userId === userInfo.id)
+        data.push({ message: temp, isSelf: true });
+      else
+        data.push({ message: temp, isSelf: false });
+
+/*			if (note.substring(note.length - 21) === userInfo.id) {
 				data.push({ message: temp, isSelf: true });
 			} else {
 				data.push({ message: temp, isSelf: false });
-			}
-
+			}*/
 			dispatch(
 				addChatDetails({
-					id: topic,
+					id: topicJSON.channel,
 					chat: data,
 				})
 			);
@@ -328,13 +393,22 @@ function Chat() {
 		if ((!isSubscribed && userInfo.subscribed) || fetchConnectionData) {
 			setIsSubscribed(true);
 			var info = userInfo.subscribed;
-			var tosub = [];
-			if (info) {
+      var tosub = [];
+
+      if (info) {
 				for (var i = 0; i < info.length; i++) {
-					tosub.push(info[i].scid);
+          //tosub.push(info[i].scid);
+					//console.log(`client should subscribe to ${info[i].scid}`);
+					const topic = generateSubscription(info[i].scid);
+          //console.log(`client ${userInfo.id} is subscribing to topic ${topic}`);
+          tosub.push(topic);
+          //tosub.push(topic);
 				}
-			}
-			client.subscribe(tosub);
+				client.subscribe(tosub);
+      }
+
+
+
 		}
 	}, [setIsSubscribed, isSubscribed, userInfo, fetchConnectionData]);
 
@@ -458,7 +532,10 @@ function Chat() {
 							>
 								<CloseIcon
 									onClick={() => {
-										client.unsubscribe(currentState.currentChannelName);
+                    //tosub.push(info[i].scid);
+                    const topic = generateSubscription(currentState.currentChannelName);
+
+										client.unsubscribe(topic);
 										for (var i = 0; i < userInfo.subscribed.length; i++) {
 											if (
 												userInfo.subscribed[i].scid ===
