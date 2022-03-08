@@ -242,8 +242,8 @@ function Home() {
 		fooBarNode.classList.remove("sign-up-mode");
 	};
 	useEffect(() => {
-		if (window.location.protocol === "https:")
-			window.location.protocol = "http:";
+		if (window.location.protocol === "http:")
+			window.location.protocol = "https:";
 	});
 	return (
 		<div class="container" ref={container}>
@@ -345,15 +345,3 @@ function Home() {
 }
 
 export default Home;
-
-/*<div class="form__input-field">
-  <i class="fas fa-user"></i>
-  <input
-    name="userEmail"
-    value={userDetails.userEmail || ''}
-    onChange={onChange}
-    type="text"
-    placeholder="Username"
-    required
-  />
-</div>*/

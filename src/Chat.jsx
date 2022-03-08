@@ -27,13 +27,8 @@ import Loader from "./Loader";
 import Logout from './components/Logout';
 
 var mqtt = require("mqtt");
-/*var options = {
-  protocol: 'mqtts',
-  rejectUnauthorized: false,
-}*/
-
-var client = mqtt.connect("mqtt://3.9.173.112:8888");
-//var client = mqtt.connect("mqtt://test.mosquitto.org:8081", options);
+const client = mqtt.connect("wss://3.9.173.112:8883", {rejectUnauthorized: false});
+//const client = mqtt.connect('wss://localhost:8883', {rejectUnauthorized: false})
 
 var fnv = require('fnv-plus');
 
