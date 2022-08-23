@@ -27,7 +27,7 @@ import Loader from "./Loader";
 import Logout from './components/Logout';
 
 var mqtt = require("mqtt");
-const client = mqtt.connect("wss://3.9.173.112:8883", {rejectUnauthorized: false});
+const client = mqtt.connect("wss://spat.vastverse.net:443/mqtt", {rejectUnauthorized: false});
 //const client = mqtt.connect('wss://localhost:8883', {rejectUnauthorized: false})
 
 var fnv = require('fnv-plus');
